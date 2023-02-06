@@ -36,17 +36,27 @@ const App = () => {
     setNotes((prevState) => [...prevState, newNote()]);
   }, []);
 
-  const updateLocation = (id: string, top: number, left: number) => {
-    let targetNote = notes.find((note) => note.id === id);
-    setNotes((prevState) => {
-      return targetNote
-        ? [
-            ...prevState.filter((item) => item.id !== id),
-            { ...targetNote, top, left },
-          ]
-        : prevState;
-    });
-  };
+  const updateNote = useCallback(
+    (
+      id: string,
+      top: number,
+      left: number,
+      width: number,
+      height: number,
+      text: string
+    ) => {
+      let targetNote = notes.find((note) => note.id === id);
+      setNotes((prevState) => {
+        return targetNote
+          ? [
+              ...prevState.filter((item) => item.id !== id),
+              { ...targetNote, top, left, width, height, text },
+            ]
+          : prevState;
+      });
+    },
+    [notes]
+  );
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -57,11 +67,7 @@ const App = () => {
       <button onClick={handleAdd}>Add note</button>
       <div onDragOver={handleDragOver} className={S.container}>
         {notes?.map((note) => (
-          <Sticker
-            key={note.id}
-            noteData={note}
-            updateLocation={updateLocation}
-          />
+          <Sticker key={note.id} noteData={note} updateNote={updateNote} />
         ))}
       </div>
     </div>
