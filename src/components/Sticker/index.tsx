@@ -76,9 +76,9 @@ const Sticker: React.FC<INote> = ({ noteData, updateNote }) => {
     setLeft(e.clientX - offsetLeft.current);
     updateNote(
       noteData.id,
-      top,
-      e.clientX - offsetLeft.current,
       e.clientY - offsetTop.current,
+      e.clientX - offsetLeft.current,
+      width,
       height,
       text
     );
