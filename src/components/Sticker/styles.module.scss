@@ -1,0 +1,11 @@
+.note {
+  position: absolute;
+  box-shadow: 3px 3px 8px 0 rgba(34, 60, 80, 0.2);
+  border-radius: 3px;
+  padding: 10px;
+
+  &_hide {
+    transition: 0.01s;
+    transform: translateX(-9999px);
+  }
+}
