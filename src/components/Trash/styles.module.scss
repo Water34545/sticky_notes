@@ -1,0 +1,13 @@
+.trash {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  background: #ffc9c9;
+  color: #ff2a2a;
+  font-weight: 700;
+  text-transform: uppercase;
+  top: 0;
+  right: 0;
+}

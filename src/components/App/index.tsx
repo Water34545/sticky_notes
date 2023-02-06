@@ -1,6 +1,9 @@
 import S from './styles.module.scss';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Sticker from '@components/Sticker';
+import Trash from '@components/Trash';
+
+export const TRASH_WIDTH = 300;
 
 export interface NoteData {
   id: string;
@@ -24,13 +27,19 @@ const newNote = (): NoteData => {
     color,
     width: 200,
     height: 200,
-    top: 40,
-    left: 0,
+    top: 30,
+    left: 10,
   };
 };
 
 const App = () => {
   const [notes, setNotes] = useState<NoteData[]>([]);
+  useEffect(() => {
+    const localNotes = localStorage.getItem('notes');
+    if (localNotes) {
+      setNotes(JSON.parse(localNotes));
+    }
+  }, []);
 
   const handleAdd = useCallback(() => {
     setNotes((prevState) => [...prevState, newNote()]);
@@ -46,13 +55,18 @@ const App = () => {
       text: string
     ) => {
       let targetNote = notes.find((note) => note.id === id);
+      if (left + width / 2 > document.body.clientWidth - TRASH_WIDTH) {
+        targetNote = undefined;
+      }
       setNotes((prevState) => {
-        return targetNote
+        const newState = targetNote
           ? [
               ...prevState.filter((item) => item.id !== id),
               { ...targetNote, top, left, width, height, text },
             ]
-          : prevState;
+          : [...prevState.filter((item) => item.id !== id)];
+        localStorage.setItem('notes', JSON.stringify(newState));
+        return newState;
       });
     },
     [notes]
@@ -63,13 +77,12 @@ const App = () => {
   };
 
   return (
-    <div>
+    <div onDragOver={handleDragOver} className={S.container}>
       <button onClick={handleAdd}>Add note</button>
-      <div onDragOver={handleDragOver} className={S.container}>
-        {notes?.map((note) => (
-          <Sticker key={note.id} noteData={note} updateNote={updateNote} />
-        ))}
-      </div>
+      <Trash width={TRASH_WIDTH} />
+      {notes?.map((note) => (
+        <Sticker key={note.id} noteData={note} updateNote={updateNote} />
+      ))}
     </div>
   );
 };

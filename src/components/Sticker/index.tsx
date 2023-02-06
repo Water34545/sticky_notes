@@ -18,22 +18,23 @@ const Sticker: React.FC<INote> = ({ noteData, updateNote }) => {
   const [resizeObserver, setResizeObserver] = useState<ResizeObserver | null>(
     null
   );
+  const [text, setText] = useState(noteData.text);
+  const [top, setTop] = useState(noteData.top);
+  const [left, setLeft] = useState(noteData.left);
+  const [width, setWidth] = useState(noteData.width);
+  const [height, setHeight] = useState(noteData.height);
+
   const offsetTop = useRef(0);
   const offsetLeft = useRef(0);
   const textRef = useRef<null | HTMLTextAreaElement>(null);
+  const timeOut = useRef<null | NodeJS.Timeout>(null);
 
   useEffect(() => {
     setResizeObserver(
       new ResizeObserver(() => {
         if (textRef.current) {
-          updateNote(
-            noteData.id,
-            noteData.top,
-            noteData.left,
-            textRef.current.clientWidth,
-            textRef.current.clientHeight,
-            noteData.text
-          );
+          setWidth(textRef.current.clientWidth);
+          setHeight(textRef.current.clientHeight);
         }
       })
     );
@@ -46,34 +47,45 @@ const Sticker: React.FC<INote> = ({ noteData, updateNote }) => {
     }
   }, [resizeObserver]);
 
+  useEffect(() => {
+    if (timeOut.current) {
+      clearTimeout(timeOut.current);
+    }
+    timeOut.current = setTimeout(
+      () => updateNote(noteData.id, top, left, width, height, text),
+      300
+    );
+    return () => {
+      if (timeOut.current) {
+        clearTimeout(timeOut.current);
+      }
+    };
+  }, [width, height, text]);
+
   const dragStartHandler = (e: React.DragEvent<HTMLDivElement>) => {
     let element = e.target as HTMLElement;
     offsetTop.current = e.clientY - element.offsetTop;
     offsetLeft.current = e.clientX - element.offsetLeft;
     element.classList.add(S.sticker_hide);
   };
+
   const dragEndHandler = (e: React.DragEvent<HTMLDivElement>) => {
     let element = e.target as Element;
     element.classList.remove(S.sticker_hide);
+    setTop(e.clientY - offsetTop.current);
+    setLeft(e.clientX - offsetLeft.current);
     updateNote(
       noteData.id,
-      e.clientY - offsetTop.current,
+      top,
       e.clientX - offsetLeft.current,
-      noteData.width,
-      noteData.height,
-      noteData.text
+      e.clientY - offsetTop.current,
+      height,
+      text
     );
   };
 
   const changeHandler = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    updateNote(
-      noteData.id,
-      noteData.top,
-      noteData.left,
-      noteData.width,
-      noteData.height,
-      e.target.value
-    );
+    setText(e.target.value);
   };
 
   return (
@@ -83,21 +95,19 @@ const Sticker: React.FC<INote> = ({ noteData, updateNote }) => {
       onDragStart={dragStartHandler}
       onDragEnd={dragEndHandler}
       style={{
-        width: `${noteData.width}px`,
-        height: `${noteData.height}px`,
         background: noteData.color,
-        top: `${noteData.top}px`,
-        left: `${noteData.left}px`,
+        top: `${top}px`,
+        left: `${left}px`,
       }}
     >
       <textarea
         ref={textRef}
-        value={noteData.text}
+        value={text}
         className={S.sticker_text}
         onChange={changeHandler}
         style={{
-          width: `${noteData.width}px`,
-          height: `${noteData.height}px`,
+          width: `${width}px`,
+          height: `${height}px`,
         }}
       />
     </div>
